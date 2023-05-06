@@ -1,0 +1,13 @@
+.idea/
+session_name.session
+telegram_for_client.py
+**/__pycache__/
+celery_periodic_tasks/celerybeat-schedule
+
+# emoji
+# redis
+# celery
+# python-telegram-bot
+# requests ???
+# bs4
+
