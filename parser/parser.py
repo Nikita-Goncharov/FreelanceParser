@@ -1,8 +1,16 @@
-from bs4 import BeautifulSoup
+import os
 import requests
-from bot.bot import updater
+
+from bs4 import BeautifulSoup
+from dotenv import load_dotenv
 import emoji
 from reloading import reloading
+from telegram.ext import Updater
+
+updater = Updater(os.getenv("BOT_TOKEN"))
+
+load_dotenv()
+
 
 headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
 
@@ -47,35 +55,29 @@ def get_new_tasks(parsed_trs, last_task_time):
 
 
 def parse_freelancehunt():
-    # url = 'https://freelancehunt.com/ua/projects/skill/python/22.html'
-    url = "https://freelancehunt.com/ua/projects/skill/javascript/28.html"
+    urls = {"javascript": "https://freelancehunt.com/ua/projects/skill/javascript/28.html", "python": "https://freelancehunt.com/ua/projects/skill/python/22.html"}
 
     global prev_last_task_time
+    for url in urls.items():
+        current_tasks_time = 0
 
-    current_tasks_time = 0
+        response = requests.get(url[1], headers=headers)
 
-    response = requests.get(url, headers=headers)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        table = soup.find(class_='table table-normal project-list')
+        parsed_trs = table.findChildren('tr')
 
-    soup = BeautifulSoup(response.content, 'html.parser')
-    table = soup.find(class_='table table-normal project-list')
-    parsed_trs = table.findChildren('tr')
+        for tr in parsed_trs:
+            if int(tr["data-published"]) > current_tasks_time:
+                current_tasks_time = int(tr["data-published"])
 
-    for tr in parsed_trs:
-        if int(tr["data-published"]) > current_tasks_time:
-            current_tasks_time = int(tr["data-published"])
-
-    if prev_last_task_time != 0 and prev_last_task_time < current_tasks_time:
-        print("New task !!!", f"Prev: {prev_last_task_time} Current: {current_tasks_time}")
-
-        stringed_tasks = get_new_tasks(parsed_trs, prev_last_task_time)
-        if stringed_tasks:
-            for task in stringed_tasks:
-                updater.bot.send_message(chat_id=983240870, text=task)
-    elif prev_last_task_time != 0:
-        stringed_task = make_string_message(parsed_trs[0])
-        updater.bot.send_message(chat_id=983240870, text=stringed_task)
-
-        print("No new tasks!!!", f"Prev: {prev_last_task_time} Current: {current_tasks_time}")
-
-    prev_last_task_time = current_tasks_time
+        if prev_last_task_time != 0 and prev_last_task_time < current_tasks_time:
+            stringed_tasks = get_new_tasks(parsed_trs, prev_last_task_time)
+            if stringed_tasks:
+                for task in stringed_tasks:
+                    task = f"{url[0].capitalize()}/n{task}"
+                    updater.bot.send_message(chat_id=os.getenv('CHAT_ID'), text=task)
+            else:
+                updater.bot.send_message(chat_id=os.getenv('CHAT_ID'), text="Error that should not occur")
+        prev_last_task_time = current_tasks_time
 
