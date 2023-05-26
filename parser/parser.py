@@ -5,7 +5,6 @@ import inspect
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 import emoji
-from reloading import reloading
 from telegram.ext import Updater
 
 load_dotenv()
@@ -27,13 +26,16 @@ prev_last_tasks_time = {
     "javascript": 0
 }
 
-@reloading
+
 def make_string_message(task_tr_tag):
+    # Parse section of task
     left_section = task_tr_tag.findChild('td', attrs={'class': 'left'})
     project_budget_section = task_tr_tag.findChild('td', attrs={'class': 'project-budget'})
-    project_budget = f"{emoji.emojize('∅')}"
-    premium_label = f"{emoji.emojize('⭐')}Premium Task\n\n" if left_section.findChild('span', attrs={'class': 'label color-orange with-tooltip'}) else f"{emoji.emojize('❗')}Task\n\n"
 
+    project_budget = f"{emoji.emojize('∅')}"
+    label = f"{emoji.emojize('⭐')}Premium Task\n\n" if left_section.findChild('span', attrs={'class': 'label color-orange with-tooltip'}) else f"{emoji.emojize('❗')}Task\n\n"
+
+    # Parse budget value, in average task and in premium budget located in different places
     if project_budget_section is not None:
         budget_div = project_budget_section.findChild('div', attrs={'class': 'text-green price with-tooltip'})
     else:
@@ -42,13 +44,14 @@ def make_string_message(task_tr_tag):
     if budget_div is not None:
         project_budget = budget_div.getText().replace("\n", "")
 
+    # Parse values from sections
     a_tag = left_section.findChild('a', attrs={'class': 'visitable'})
     title = a_tag.getText().replace("\n", "")
     description = left_section.findChild('p').getText().replace("\n", "")
     task_link = a_tag['href']
 
     stringed_task = inspect.cleandoc(f"""
-        {premium_label}
+        {label}
         {emoji.emojize('🏷')}Title: {title}\n\n
         {emoji.emojize('📑')}Description: {description}\n\n
         {emoji.emojize('💰')}Price: {project_budget}\n\n
@@ -70,28 +73,36 @@ def get_new_tasks(parsed_trs, last_task_time):
 
 
 def parse_freelancehunt():
-
     global prev_last_tasks_time
-    for page_language_url in tasks_pages_urls.items():
+    for page_language_url in tasks_pages_urls.items():  # tasks_pages_urls - dict with urls of freelance pages
         current_tasks_time = 0
 
-        response = requests.get(page_language_url[1], headers=headers)  # page_language_url - ('language key', 'url of page')
+        # page_language_url - ('language key', 'url of page')
+        response = requests.get(
+            page_language_url[1],
+            headers=headers
+        )
 
+        # Find table with tasks
         soup = BeautifulSoup(response.content, 'html.parser')
         table = soup.find(class_='table table-normal project-list')
         parsed_trs = table.findChildren('tr')
 
+        # Get time of last task
         for tr in parsed_trs:
             if int(tr["data-published"]) > current_tasks_time:
                 current_tasks_time = int(tr["data-published"])
 
+        # If current last time bigger than previous, then make strings of new tasks, else nothing
         if (prev_last_tasks_time[page_language_url[0]] != 0 and
-                prev_last_tasks_time[page_language_url[0]] < current_tasks_time):  # page_language_url - ('language key', 'url of page')
-            stringed_tasks = get_new_tasks(parsed_trs, prev_last_tasks_time[page_language_url[0]])
+                prev_last_tasks_time[page_language_url[0]] < current_tasks_time):
+            stringed_tasks = get_new_tasks(
+                parsed_trs,
+                prev_last_tasks_time[page_language_url[0]]
+            )
+
             if stringed_tasks:
                 for task in stringed_tasks:
                     task = f"{emoji.emojize('💻')}{page_language_url[0].capitalize()}\n{task}"
                     updater.bot.send_message(chat_id=os.getenv('CHAT_ID'), text=task)
-            else:
-                updater.bot.send_message(chat_id=os.getenv('CHAT_ID'), text="Error that should not occur")
         prev_last_tasks_time[page_language_url[0]] = current_tasks_time
