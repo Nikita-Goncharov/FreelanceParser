@@ -1,6 +1,9 @@
 .idea/
+**/__pycache__/
+bot/
+
+.env
+.push_to_azure.sh
+celery_periodic_tasks/celerybeat-schedule
 session_name.session
 telegram_for_client.py
-**/__pycache__/
-celery_periodic_tasks/celerybeat-schedule
-bot/
