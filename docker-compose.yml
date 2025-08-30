@@ -1,30 +1,13 @@
-version: "3"
-
-volumes:
-  data:
+version: "3.9"
 
 services:
-#  bot:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
-#    image: "bot_service"
-#    command: python ./bot/bot.py
-#    volumes:
-#      - /home/nikita-goncharov/Documents/Bot parser freelance sites/bot:/bot
-
-  redis:
-    image: redis:latest
+  parser:
+    build: .
+    container_name: parser
     ports:
-      - "6379:6379"
-
-  celery:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: "celery_service"
-    command: celery -A celery_periodic_tasks worker --loglevel=info -B
+      - 7001:7001
+    env_file:
+      - .env
+    command: "python -u -m debugpy --listen 0.0.0.0:7001 parser.py"
     volumes:
-      - /home/nikita-goncharov/Documents/Bot parser freelance sites/bot:/bot
-      - /home/nikita-goncharov/Documents/Bot parser freelance sites/celery_periodic_tasks:/celery_periodic_tasks
-      - /home/nikita-goncharov/Documents/Bot parser freelance sites/parser:/parser
+      - ./:/app
