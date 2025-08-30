@@ -13,7 +13,7 @@ API_TOKEN = os.getenv("FREELANCEHUNT_API_TOKEN")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
 ids = os.getenv("CHAT_IDS")
-CHAT_IDS = map(lambda str_id: int(str_id), ids.split(","))
+CHAT_IDS = list(map(lambda str_id: int(str_id), ids.split(",")))
 
 bot = Bot(TELEGRAM_TOKEN)
 
@@ -201,7 +201,9 @@ async def process_projects():
 
         if published > last_published:
             msg = format_message(prj, skills)
+            print("New project found")
             for chat_id in CHAT_IDS:
+                print("Sending messages")
                 await bot.send_message(chat_id=chat_id, text=msg)
             last_published = published
 
