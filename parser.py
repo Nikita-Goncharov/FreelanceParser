@@ -13,135 +13,59 @@ API_TOKEN = os.getenv("FREELANCEHUNT_API_TOKEN")
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
 ids = os.getenv("CHAT_IDS")
-CHAT_IDS = list(map(lambda str_id: int(str_id), ids.split(",")))
+CHAT_IDS = [int(str_id) for str_id in ids.split(",")]
 
 bot = Bot(TELEGRAM_TOKEN)
 
-CATEGORIES = [
-    "3D Modeling",
-    "Accounting Services",
-    "Advertising",
-    "AI & Machine Learning",
-    "AI Art",
-    "AI Consulting",
-    "AI Content Creation",
-    "AI Speech & Audio Generation",
-    "Animation",
-    "App Development for Android",
-    "App Store Optimization (ASO)",
-    "Apps for iOS (iPhone and iPad)",
-    "AR & VR Development",
-    "Architectural Design",
-    "Articles & Blog Posts",
-    "Artwork",
-    "Audio & Video Editing",
-    "Audio Processing",
-    "Banners",
-    "Bot Development",
-    "Business Card Design",
-    "C & C++",
-    "C#",
-    "Client Management & CRM",
-    "Clothing design",
-    "Consulting",
-    "Content Management",
-    "Content Management Systems",
-    "Contextual Advertising",
-    "Copywriting",
-    "Corporate Style",
-    "Cryptocurrency & Blockchain",
-    "Customer Support",
-    "Cybersecurity & Data Protection",
-    "Data Parsing",
-    "Data Processing",
-    "Databases & SQL",
-    "Desktop Apps",
-    "DevOps",
-    "Drawings & Diagrams",
-    "Email Marketing",
-    "Embedded Systems & Microcontrollers",
-    "Engineering",
-    "English",
-    "Enterprise Resource Planning (ERP)",
-    "Exhibition Booth Design",
-    "French",
-    "Gaming Apps",
-    "German",
-    "HTML & CSS",
-    "Hybrid Mobile Apps",
-    "Icons & Pixel Graphics",
-    "Illustrations & Drawings",
-    "Industrial Design",
-    "Infographics",
-    "Information Gathering",
-    "Interface Design (UI/UX)",
-    "Interior Design",
-    "Java",
-    "Javascript and Typescript",
-    "Landscape Projects & Design",
-    "Lead Generation & Sales",
-    "Legal Services",
-    "Link Building",
-    "Linux & Unix",
-    "Logo Design",
-    "Marketing Research",
-    "Mechanical Engineering & Instrument Making",
-    "Mobile Apps Design",
-    "Music",
-    "Naming & Slogans",
-    "Object Design",
-    "Online Stores & E-commerce",
-    "Outdoor Advertising",
-    "Packaging and label design",
-    "Payment Systems Integration",
-    "Photo Processing",
-    "Photography",
-    "PHP",
-    "Poems, Songs & Prose",
-    "Polish",
-    "Presentations",
-    "Print Design",
-    "Project Management",
-    "Public Relations (PR)",
-    "Python",
-    "Recruitment (HR)",
-    "Rewriting",
-    "Script Writing",
-    "Search Engine Optimization (SEO)",
-    "Search Engine Reputation Management (SERM)",
-    "Social Media Advertising",
-    "Social Media Marketing (SMM)",
-    "Social Media Page Design",
-    "Software & Server Configuration",
-    "Software, Website & Game Localization",
-    "Spanish",
-    "Speaker & Voice Services",
-    "System & Network Administration",
-    "Teaser Advertisements",
-    "Technical Documentation",
-    "Testing & QA",
-    "Text Editing & Proofreading",
-    "Text Translation",
-    "Transcribing",
-    "Tuition",
-    "Type & Font Design",
-    "Ukrainian",
-    "Vector Graphics",
-    "Video Advertising",
-    "Video Creation by Artificial Intelligence",
-    "Video Processing",
-    "Video Recording",
-    "VR & AR Design",
-    "Web Design",
-    "Web Programming",
-    "Website Development",
-    "Website Maintenance",
-    "Website SEO Audit",
-    "Windows",
+SKILLS = [
+    {"id": 175, "name": "AI & Machine Learning"},
+    {"id": 121, "name": "App Development for Android"},
+    {"id": 193, "name": "App Store Optimization (ASO)"},
+    {"id": 120, "name": "Apps for iOS (iPhone and iPad)"},
+    {"id": 185, "name": "AR & VR Development"},
+    {"id": 108, "name": "Architectural Design"},
+    {"id": 180, "name": "Bot Development"},
+    {"id": 2, "name": "C & C++"},
+    {"id": 24, "name": "C#"},
+    {"id": 150, "name": "Client Management & CRM"},
+    {"id": 78, "name": "Content Management Systems"},
+    {"id": 182, "name": "Cryptocurrency & Blockchain"},
+    {"id": 65, "name": "Cybersecurity & Data Protection"},
+    {"id": 169, "name": "Data Parsing"},
+    {"id": 178, "name": "Data Processing"},
+    {"id": 86, "name": "Databases & SQL"},
+    {"id": 103, "name": "Desktop Apps"},
+    {"id": 181, "name": "DevOps"},
+    {"id": 176, "name": "Embedded Systems & Microcontrollers"},
+    {"id": 148, "name": "Engineering"},
+    {"id": 124, "name": "HTML & CSS"},
+    {"id": 183, "name": "Hybrid Mobile Apps"},
+    {"id": 13, "name": "Java"},
+    {"id": 28, "name": "Javascript and Typescript"},
+    {"id": 162, "name": "Lead Generation & Sales"},
+    {"id": 6, "name": "Linux & Unix"},
+    {"id": 188, "name": "Mechanical Engineering & Instrument Making"},
+    {"id": 179, "name": "Mobile Apps Design"},
+    {"id": 129, "name": "Payment Systems Integration"},
+    {"id": 89, "name": "Project Management"},
+    {"id": 22, "name": "Python"},
+    {"id": 159, "name": "Recruitment (HR)"},
+    {"id": 125, "name": "Rewriting"},
+    {"id": 163, "name": "Script Writing"},
+    {"id": 14, "name": "Search Engine Optimization (SEO)"},
+    {"id": 135, "name": "Search Engine Reputation Management (SERM)"},
+    {"id": 83, "name": "Software & Server Configuration"},
+    {"id": 157, "name": "Software, Website & Game Localization"},
+    {"id": 143, "name": "Speaker & Voice Services"},
+    {"id": 39, "name": "System & Network Administration"},
+    {"id": 97, "name": "Technical Documentation"},
+    {"id": 57, "name": "Testing & QA"},
+    {"id": 99, "name": "Web Programming"},
+    {"id": 96, "name": "Website Development"},
+    {"id": 45, "name": "Website Maintenance"},
 ]
 
 last_published = None
-
 
 async_client = AsyncClient()
 
@@ -157,7 +81,7 @@ async def fetch_projects():
     return resp.json()["data"]
 
 
-def format_message(project, categories):
+def format_message(project, skills):
     attrs = project["attributes"]
     budget = attrs.get("budget")
     price = f"{budget['amount']} {budget['currency']}" if budget else "--"
@@ -165,11 +89,11 @@ def format_message(project, categories):
     is_premium = attrs.get("is_premium", False)
     premium_label = f"{emoji.emojize('⭐')} Premium Task\n\n" if is_premium else f"{emoji.emojize('❗')} Task\n\n"
 
-    categories_pretty = ", ".join([c for c in categories])
+    skills_pretty = ", ".join([skill["name"] for skill in skills])
 
     return (
         f"{premium_label}"
-        f"Categories: {categories_pretty}\n"
+        f"Categories: {skills_pretty}\n"
         f"{emoji.emojize('🏷')} Title: {attrs['name']}\n\n"
         f"{emoji.emojize('📑')} Description: {attrs['description']}\n\n"
         f"{emoji.emojize('💰')} Price: {price}\n\n"
@@ -192,20 +116,21 @@ async def process_projects():
 
     for prj in projects:
         attrs = prj["attributes"]
-        skills = [s["name"] for s in attrs.get("skills", [])]
+        project_skills_ids = [skill["id"] for skill in attrs.get("skills", [])]
         published = datetime.fromisoformat(attrs["published_at"].replace("Z", "+00:00"))
 
-        # matched_cats = [c for c in CATEGORIES if c in skills]
-        # if not matched_cats:
-        #     continue
-
         if published > last_published:
-            msg = format_message(prj, skills)
+            # matching skills by ids 
+            matched_skills = [skill for skill in SKILLS if skill["id"] in project_skills_ids]
+            if not matched_skills:
+                continue
+            msg = format_message(prj, matched_skills)
             print("New project found")
             for chat_id in CHAT_IDS:
                 print("Sending messages")
                 await bot.send_message(chat_id=chat_id, text=msg)
             last_published = published
+
 
 async def main():
     while True:
@@ -213,8 +138,9 @@ async def main():
             await process_projects()
         except Exception as e:
             print(f"Error: {e}, type: {type(e)}")
-        await asyncio.sleep(30)
+        await asyncio.sleep(10)
         print("Next cycle")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
